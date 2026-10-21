@@ -1,8 +1,7 @@
 # Building
 
-Requires the .NET 8 SDK and Python 3. The mod targets .NET 6 and tests run on
-.NET 8. Launch Schedule I with MelonLoader once to generate its IL2CPP
-assemblies.
+Requires the .NET 8 SDK and Rust. The mod targets .NET 6 and tests run on .NET
+8\. Launch Schedule I with MelonLoader once to generate its IL2CPP assemblies.
 
 Set the MelonLoader path to the directory containing both `net6` and
 `Il2CppAssemblies`. These game and loader dependencies stay on your machine.
@@ -18,20 +17,21 @@ mod.
 $loader = "C:\path\to\profile\MelonLoader"
 dotnet build ClearMinimap.csproj --configuration Release "-p:MelonLoaderDir=$loader"
 dotnet run --project tests/Tests.csproj
-python package.py --prepare
+Copy-Item bin/Release/net6.0/ClearMinimap.dll package/ClearMinimap.dll
 ```
 
 ## Linux / Nix
 
 ```sh
-MELONLOADER_DIR='/path/to/profile/MelonLoader' ./build.sh
+MELONLOADER_DIR='/path/to/profile/MelonLoader' nix-shell -p dotnet-sdk_8 --run 'dotnet build ClearMinimap.csproj --configuration Release "-p:MelonLoaderDir=$MELONLOADER_DIR"'
 nix-shell -p dotnet-sdk_8 --run 'dotnet run --project tests/Tests.csproj'
+cp bin/Release/net6.0/ClearMinimap.dll package/ClearMinimap.dll
 ```
 
 The DLL is written to `bin/Release/net6.0/`. Packaging produces a Thunderstore
-ZIP in `dist/`. Run `python package.py --prepare` after building to copy the DLL
-into `package/` and create the ZIP. Commit that DLL alongside its source
-changes. The `bin/` and `dist/` directories remain ignored.
+ZIP in `dist/`. Copy `bin/Release/net6.0/ClearMinimap.dll` into `package/` after
+building, then follow the packaging steps below. Commit that DLL alongside its
+source changes. The `bin/` and `dist/` directories remain ignored.
 
 ## Formatting
 
@@ -39,8 +39,8 @@ Set `MelonLoaderDir` as an environment variable when formatting the main
 project:
 `MelonLoaderDir=/path/to/profile/MelonLoader dotnet format ClearMinimap.csproj`
 on Linux, or set `$env:MelonLoaderDir` in PowerShell before running the
-formatter. Run `dotnet format tests/Tests.csproj` for tests and
-`ruff format package.py` for the packaging script.
+formatter. Run `dotnet format tests/Tests.csproj` for tests and `cargo fmt` for
+the Rust release utility.
 
 Format Markdown with Neovim's configured `mdformat --wrap 80 --number`,
 including the GFM, footnote, and frontmatter plugins. Avoid semicolons in prose.
@@ -71,6 +71,27 @@ checks:
 
 Game assets are referenced at runtime and must not be distributed.
 
+## Packaging
+
+The PNG icon is copied from
+[the studio brand assets](https://github.com/holyfurries/brand-assets/tree/main/logos).
+Edit its SVG there and copy the regenerated PNG here. Its asset terms ship as
+`icon-LICENSE`.
+
+Thunderstore CLI builds the ZIP. The Rust utility validates metadata, generates
+its configuration from `package/manifest.json`, and checks the finished archive.
+It does not build ZIPs.
+
+```console
+cargo run --locked -- metadata
+dotnet tool restore
+dotnet tool run tcli build --config-path dist/thunderstore.toml
+cargo run --locked -- package
+```
+
+On Nix, run these commands inside `nix-shell -p cargo rustc dotnet-sdk_8`. ZIP
+names follow `holyfurries-ClearMinimap-<version>.zip`.
+
 ## GitHub Actions
 
 `Package and publish` runs standalone tests and release-metadata checks on pull
@@ -79,15 +100,15 @@ validated Thunderstore ZIP. Download the `thunderstore-package` artifact from
 the run and extract the mod ZIP inside. Artifacts expire after 30 days.
 
 CI packages `package/ClearMinimap.dll`. It does not compile the mod or need game
-references. Rebuild locally and run `python package.py --prepare` whenever the
-mod source changes. CI tests source code separately. Those tests do not prove
-the committed DLL matches that source or that multiplayer works.
+references. Rebuild locally and copy the DLL into `package/` whenever the mod
+source changes. CI tests source code separately. Those tests do not prove the
+committed DLL matches that source or that multiplayer works.
 
 ## Publishing
 
 1. Update the version in the project, package manifest and MelonInfo attribute
    together.
-2. Build locally, run tests, then run `python package.py --prepare`.
+2. Build locally, run tests, and copy the refreshed DLL into `package/`.
 3. Commit and push the source, metadata and refreshed
    `package/ClearMinimap.dll`.
 4. Create and push a matching `vX.Y.Z` tag.

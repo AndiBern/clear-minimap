@@ -1,5 +1,9 @@
 # Clear Minimap
 
+[Holy Furries Studio](https://holyfurries.com) ·
+[Thunderstore](https://thunderstore.io/c/schedule-i/p/holyfurries/ClearMinimap/)
+· [Source](https://github.com/holyfurries/clear-minimap)
+
 A square minimap with a north-up map and an arrow that follows your view. It
 shows teammates with names and distances, owned properties, active deals,
 tracked objectives, and locations from the game's map.
@@ -31,4 +35,5 @@ See
 [BUILDING.md](https://github.com/holyfurries/clear-minimap/blob/main/BUILDING.md)
 for builds, tests, packaging, and in-game checks.
 
-[MIT license](https://github.com/holyfurries/clear-minimap/blob/main/LICENSE).
+[Code: MIT](https://github.com/holyfurries/clear-minimap/blob/main/LICENSE).
+[Icon: studio asset terms](https://github.com/holyfurries/brand-assets/blob/main/LICENSE).

@@ -10,11 +10,9 @@
 !/BUILDING.md
 
 !/ClearMinimap.csproj
-!/build.sh
-!/package.py
 
 !/.github/workflows/*.yml
-!/ci/*.py
+!/ci/*.rs
 !/src/**/*.cs
 !/tests/*.cs
 !/tests/Tests.csproj
@@ -23,3 +21,10 @@
 
 !/package/ClearMinimap.dll
 !/package/manifest.json
+
+!/package/icon.png
+!/package/icon-LICENSE
+
+!/Cargo.*
+!/.config/dotnet-tools.json
+/target/
