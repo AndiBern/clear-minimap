@@ -10,7 +10,7 @@ using Il2CppScheduleOne.UI.Phone.Map;
 using MelonLoader;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(ClearMinimap.Main), "Clear Minimap", "0.2.1", "holyfurries")]
+[assembly: MelonInfo(typeof(ClearMinimap.Main), "Clear Minimap", "0.3.0", "holyfurries")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace ClearMinimap;
@@ -20,6 +20,13 @@ public sealed class Main : MelonMod
     private readonly MinimapView view = new();
     private MelonPreferences_Entry<float> map_size = null!;
     private MelonPreferences_Entry<bool> enabled = null!;
+    private MelonPreferences_Entry<bool> show_npcs = null!;
+    private MelonPreferences_Entry<float> zoom = null!;
+    private MelonPreferences_Entry<MapCorner> corner = null!;
+    private MelonPreferences_Entry<float> horizontal_margin = null!;
+    private MelonPreferences_Entry<float> vertical_margin = null!;
+    private MelonPreferences_Entry<KeyCode> zoom_in_key = null!;
+    private MelonPreferences_Entry<KeyCode> zoom_out_key = null!;
     private bool running;
     private bool failed;
     private bool conflict;
@@ -30,12 +37,28 @@ public sealed class Main : MelonMod
         MelonPreferences_Category preferences = MelonPreferences.CreateCategory("ClearMinimap");
         map_size = preferences.CreateEntry<float>("size", 280f, "Minimap size");
         enabled = preferences.CreateEntry<bool>("enabled", true, "Show minimap");
+        show_npcs = preferences.CreateEntry<bool>("show_npcs", true, "Show phone map NPCs");
+        zoom = preferences.CreateEntry<float>("zoom", 1f, "Zoom");
+        zoom_in_key = preferences.CreateEntry("zoom_in_key", KeyCode.PageUp, "Zoom in shortcut");
+        zoom_out_key = preferences.CreateEntry("zoom_out_key", KeyCode.PageDown, "Zoom out shortcut");
+        corner = preferences.CreateEntry("corner", MapCorner.TopRight, "Screen corner");
+        horizontal_margin = preferences.CreateEntry<float>("horizontal_margin", 16f, "Horizontal margin");
+        vertical_margin = preferences.CreateEntry<float>("vertical_margin", 16f, "Vertical margin");
         ModSettings.Settings.toggle("Clear Minimap", "Show minimap", enabled);
         ModSettings.Settings.slider("Clear Minimap", "Minimap size", map_size, minimum: 200f, maximum: 360f, whole_numbers: true);
+        ModSettings.Settings.toggle("Clear Minimap", "Show phone map NPCs", show_npcs);
+        ModSettings.Settings.slider("Clear Minimap", "Zoom", zoom, minimum: 0.5f, maximum: 4f);
+        ModSettings.Settings.keybind("Clear Minimap", "Zoom in shortcut", zoom_in_key);
+        ModSettings.Settings.keybind("Clear Minimap", "Zoom out shortcut", zoom_out_key);
+        ModSettings.Settings.dropdown("Clear Minimap", "Screen corner", corner);
+        ModSettings.Settings.slider("Clear Minimap", "Horizontal margin", horizontal_margin, minimum: 0f, maximum: 1600f, whole_numbers: true);
+        ModSettings.Settings.slider("Clear Minimap", "Vertical margin", vertical_margin, minimum: 0f, maximum: 900f, whole_numbers: true);
         HarmonyInstance.Patch(AccessTools.Method(typeof(POI), nameof(POI.OnEnable)),
             postfix: new HarmonyMethod(typeof(Main), nameof(register_point)));
         HarmonyInstance.Patch(AccessTools.Method(typeof(POI), nameof(POI.OnDisable)),
             postfix: new HarmonyMethod(typeof(Main), nameof(unregister_point)));
+        HarmonyInstance.Patch(AccessTools.Method(typeof(NPCPoI), nameof(NPCPoI.InitializeUI)),
+            postfix: new HarmonyMethod(typeof(Main), nameof(register_point)));
         foreach (MelonMod mod in RegisteredMelons)
         {
             if (mod == this) continue;
@@ -69,9 +92,26 @@ public sealed class Main : MelonMod
     {
         try
         {
-            if (!ready() || Time.unscaledTime < refresh_seconds) return;
+            if (!ready()) return;
+            if (enabled.Value && Player.Local.Health.IsAlive && !settings_open() &&
+                !(PauseMenu.InstanceExists && PauseMenu.Instance.IsPaused) && !(Phone.InstanceExists && Phone.Instance.IsOpen))
+            {
+                int direction = (zoom_in_key.Value != KeyCode.None && Input.GetKeyDown(zoom_in_key.Value) ? 1 : 0) -
+                    (zoom_out_key.Value != KeyCode.None && Input.GetKeyDown(zoom_out_key.Value) ? 1 : 0);
+                if (direction != 0)
+                {
+                    float value = MapProjection.zoom(MapProjection.zoom(zoom.Value) + direction * 0.25f);
+                    if (value != zoom.Value)
+                    {
+                        zoom.Value = value;
+                        try { MelonPreferences.Save(); }
+                        catch (Exception error) { LoggerInstance.Warning($"Clear Minimap: Could not save zoom: {error.Message}"); }
+                    }
+                }
+            }
+            if (Time.unscaledTime < refresh_seconds) return;
             refresh_seconds = Time.unscaledTime + 0.5f;
-            MapMarkers.refresh();
+            MapMarkers.refresh(show_npcs.Value);
         }
         catch (Exception error) { fail(error); }
     }
@@ -91,7 +131,9 @@ public sealed class Main : MelonMod
             }
             float scale = Math.Clamp(Screen.height / 1080f, 0.65f, 2f);
             float size = MapProjection.size(map_size.Value);
-            view.draw(new Rect(Screen.width / scale - size - 16, 16, size, size), available, scale);
+            System.Numerics.Vector2 position = MapProjection.panel_position(new(Screen.width / scale, Screen.height / scale), size,
+                corner.Value, new(horizontal_margin.Value, vertical_margin.Value));
+            view.draw(new Rect(position.X, position.Y, size, size), available, scale, MapProjection.zoom(zoom.Value), show_npcs.Value);
         }
         catch (Exception error) { fail(error); }
     }

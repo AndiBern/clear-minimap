@@ -9,12 +9,12 @@ shows teammates with names and distances, owned properties, active deals,
 tracked objectives, and locations from the game's map.
 
 Teammates, deals, and objectives stay visible at the edge when out of range. The
-map covers 220 metres across and hides while the phone or pause menu is open,
-except for its settings preview.
+map covers 220 metres across at the default zoom and hides while the phone or
+pause menu is open, except for its settings preview.
 
 ## Install
 
-**IL2CPP only.** Requires **MelonLoader 0.7.3** and **ModSettings 0.2.0**.
+**IL2CPP only.** Requires **MelonLoader 0.7.3** and **ModSettings 0.3.0**.
 
 Disable **SimpleMinimap** or other minimap mods. Install through **r2modman** or
 **Thunderstore Mod Manager**, which installs ModSettings automatically. For
@@ -23,9 +23,18 @@ release ZIPs into the game's `Mods/` folder.
 
 ## Settings
 
-Open **Settings → Mods → Clear Minimap** to change visibility and size. The map
-is 280 reference pixels wide by default, adjustable from 200 to 360. Changes
-apply live and are saved in `UserData/MelonPreferences.cfg`.
+Open **Settings → Mods → Clear Minimap** to change visibility, size, zoom,
+screen corner, and horizontal/vertical margins. The map is 280 reference pixels
+wide by default, adjustable from 200 to 360. Zoom ranges from 0.5× to 4×.
+**PageUp** zooms in and **PageDown** zooms out by default while playing. Change
+**Zoom in shortcut** and **Zoom out shortcut** in the same menu. Click the
+control and press a key, use **Backspace** to disable it, or **Escape** to
+cancel. Changes apply live and are saved in `UserData/MelonPreferences.cfg`.
+
+**Show phone map NPCs** includes NPC icons visible on the native phone map and
+is enabled by default. NPCs use the native icon and color, disappear outside the
+minimap, and give way to deals, objectives, and other existing markers when
+crowded. Open the phone map once if its NPC icons have not yet initialized.
 
 Occasionally your player marker has a duck day. It still follows your view.
 

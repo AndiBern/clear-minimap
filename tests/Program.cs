@@ -29,6 +29,33 @@ internal static class Program
         require(MapProjection.heading(-Vector2.UnitX) == -90, "West heading");
         require(Math.Abs(MapProjection.heading(-Vector2.UnitY)) == 180, "South heading");
         require(MapProjection.size(float.NaN) == 280 && MapProjection.size(1000) == 360 && MapProjection.size(0) == 200, "Size defaults and limits");
+        require(MapProjection.zoom(float.NaN) == 1 && MapProjection.zoom(float.PositiveInfinity) == 1 &&
+            MapProjection.zoom(0) == 0.5f && MapProjection.zoom(10) == 4, "Zoom rejects invalid values and bounds coverage");
+        require(MapProjection.try_offset(new Vector2(0.525f, 0.5f), center, span / MapProjection.zoom(2), 280, false, out offset, out _) &&
+            Math.Abs(offset.X - 70) < 0.01f, "Zoom scales landmarks and map coverage together");
+        require(!MapProjection.try_offset(new Vector2(0.56f, 0.5f), center, span / 2, 280, false, out _, out _),
+            "Zoomed static markers disappear beyond the visible map");
+        require(MapProjection.try_offset(new Vector2(0.56f, 0.5f), center, span / 2, 280, true, out offset, out edge) &&
+            edge && Math.Abs(offset.X - 128) < 0.01f, "Zoom preserves useful edge pointers");
+        Vector2 screen = new(1920, 1080);
+        Vector2 margins = new(16);
+        require(MapProjection.panel_position(screen, 280, MapCorner.TopRight, margins) == new Vector2(1624, 16),
+            "Default layout remains at the top right");
+        require(MapProjection.panel_position(screen, 280, MapCorner.TopLeft, margins) == new Vector2(16, 16), "Top left placement");
+        require(MapProjection.panel_position(screen, 280, MapCorner.BottomLeft, margins) == new Vector2(16, 760),
+            "Bottom placement reserves room for the clock");
+        require(MapProjection.panel_position(screen, 280, MapCorner.BottomRight, margins) == new Vector2(1624, 760), "Bottom right placement");
+        require(MapProjection.panel_position(screen, 280, (MapCorner)99, new(float.NaN)) == new Vector2(1624, 16),
+            "Invalid corner and margins use defaults");
+        foreach (Vector2 viewport in new[] { new Vector2(1108, 1108), screen, new Vector2(2560, 1080) })
+        {
+            foreach (MapCorner corner in Enum.GetValues<MapCorner>())
+            {
+                Vector2 position = MapProjection.panel_position(viewport, 360, corner, new Vector2(1600, 900));
+                require(position.X >= 3 && position.X + 360 + 3 <= viewport.X, "Oversized margins keep the frame inside every screen corner");
+                require(position.Y >= 3 && position.Y + 360 + 24 <= viewport.Y, "Oversized margins keep the clock inside the viewport");
+            }
+        }
         require(MapProjection.clip(new Vector2(0.02f, 0.5f), span, out Vector2 minimum, out Vector2 maximum) && minimum.X == 0 && Math.Abs(maximum.X - 0.12f) < 0.001f, "Texture clips at map boundary instead of wrapping");
         require(!MapProjection.clip(new Vector2(2, 2), span, out _, out _), "No map drawn outside sprite");
         Vector2 moved_center = center + new Vector2(0.025f, 0);
@@ -92,7 +119,7 @@ internal static class Program
         motion.reset();
         for (int identity = 0; identity < 200; identity++)
             require(motion.sample(identity, new Vector2(identity, 0), identity, identity) == new Vector2(identity, 0), "Marker churn remains bounded and starts at current position");
-        Console.WriteLine("Map projection, heading, edge markers, texture clipping, and size checks passed.");
+        Console.WriteLine("Map projection, zoom, placement, heading, edge markers, texture clipping, and size checks passed.");
     }
 
     private static void require(bool condition, string message)

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace ClearMinimap;
 
-internal enum MarkerKind { Place, Home, Deal, Teammate, Objective }
+internal enum MarkerKind { Place, Home, Deal, Teammate, Objective, NPC }
 internal readonly record struct MapMarker(Vector3 position, string label, MarkerKind kind, IntPtr source, Sprite? sprite, Transform? target, Color tint);
 
 internal static class MapMarkers
@@ -42,7 +42,7 @@ internal static class MapMarkers
             if (points[i] == point) points[i] = null;
     }
 
-    public static void refresh()
+    public static void refresh(bool show_npcs)
     {
         Array.Clear(markers, 0, count);
         count = 0;
@@ -113,6 +113,21 @@ internal static class MapMarkers
             MarkerKind kind = MapProjection.objective_icon(prefab_name) ? MarkerKind.Objective : MarkerKind.Place;
             add(new MapMarker(point.transform.position, label, kind, point.Pointer, image != null ? image.sprite : null, point.transform, image != null ? image.color : Color.white));
         }
+        if (!show_npcs) return;
+        for (int i = 0; i < points.Length && count < markers.Length; i++)
+        {
+            POI? registered = points[i];
+            if (registered == null) continue;
+            NPCPoI? point = registered.TryCast<NPCPoI>();
+            if (point == null || !point.isActiveAndEnabled || !point.UISetup || point.UI == null ||
+                !point.UI.gameObject.activeSelf || point.NPC == null || !point.NPC.gameObject.activeInHierarchy) continue;
+            Image? image = foreground_image(point);
+            if (image == null) continue;
+            string label = point.MainText;
+            if (string.IsNullOrWhiteSpace(label)) continue;
+            Transform target = point.NPC.transform;
+            add(new MapMarker(target.position, label, MarkerKind.NPC, point.Pointer, image.sprite, target, image.color));
+        }
     }
 
     private static Image? foreground_image(POI? point)
@@ -125,6 +140,14 @@ internal static class MapMarkers
             Image image = images[i];
             if (image == null || !image.enabled || !image.gameObject.activeSelf || image.color.a <= 0 ||
                 image.sprite == null || !MapProjection.foreground_icon(image.gameObject.name)) continue;
+            Transform parent = image.transform;
+            bool visible = true;
+            for (int depth = 0; depth < 32 && parent != null && parent != point.UI; depth++)
+            {
+                if (!parent.gameObject.activeSelf) { visible = false; break; }
+                parent = parent.parent;
+            }
+            if (!visible || parent != point.UI) continue;
             return image;
         }
         return null;

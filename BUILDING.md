@@ -1,86 +1,63 @@
 # Building
 
-Requires the .NET 8 SDK and Rust. The mod targets .NET 6 and tests run on .NET
-8\. Launch Schedule I with MelonLoader once to generate its IL2CPP assemblies.
+Requires the .NET 8 SDK, Rust, Schedule I with MelonLoader, and ModSettings
+0.3.0. The mod targets .NET 6. Tests run on .NET 8.
 
-Set the MelonLoader path to the directory containing both `net6` and
-`Il2CppAssemblies`. These game and loader dependencies stay on your machine.
+Launch the game with MelonLoader once to generate references, then set:
 
-Install ModSettings 0.2.0 in the profile's `Mods` folder before building. For a
-local ModSettings build, set `ModSettingsDll` to its DLL path instead. The
-shared DLL is referenced during compilation and shipped separately by its own
-mod.
+```sh
+export MelonLoaderDir='/path/to/profile/MelonLoader'
+export ModSettingsDll='/path/to/ModSettings.dll'
+```
 
-## Windows (PowerShell)
+The loader directory must contain `net6/` and `Il2CppAssemblies/`. In
+PowerShell, set `$env:MelonLoaderDir` and `$env:ModSettingsDll` instead. On Nix,
+enter `nix-shell -p dotnet-sdk_8 cargo rustc` first.
 
-```powershell
-$loader = "C:\path\to\profile\MelonLoader"
-dotnet build ClearMinimap.csproj --configuration Release "-p:MelonLoaderDir=$loader"
+## Build and test
+
+```console
+dotnet build ClearMinimap.csproj --configuration Release
 dotnet run --project tests/Tests.csproj
-Copy-Item bin/Release/net6.0/ClearMinimap.dll package/ClearMinimap.dll
+cargo test --locked
 ```
 
-## Linux / Nix
+Copy `bin/Release/net6.0/ClearMinimap.dll` into your test profile's `Mods/`
+directory, then restart the game. Install ModSettings separately.
+
+The standalone tests cover projection, zoom, placement, clipping, heading, and
+motion. Check these in-game:
+
+- Compare landmarks and NPC icons with the phone map, including moving NPCs and
+  hidden icons. Test before and after opening the phone map.
+- Change zoom, size, corner, and margins. Check map and marker alignment,
+  teammate edge pointers, and room for the clock.
+- Rebind and disable zoom shortcuts. Check persistence after restarting and
+  ensure shortcuts do nothing while settings, the phone, or pause menu is open.
+- Check markers and visibility through multiplayer joins and scene changes.
+
+Game assemblies and assets must not be distributed.
+
+## Format and verify interop
+
+With both environment variables set:
+
+```console
+dotnet format ClearMinimap.csproj
+dotnet format tests/Tests.csproj
+cargo fmt
+```
+
+After building, run the native API check. In PowerShell, use
+`$env:MelonLoaderDir` in these arguments:
 
 ```sh
-MELONLOADER_DIR='/path/to/profile/MelonLoader' nix-shell -p dotnet-sdk_8 --run 'dotnet build ClearMinimap.csproj --configuration Release "-p:MelonLoaderDir=$MELONLOADER_DIR"'
-nix-shell -p dotnet-sdk_8 --run 'dotnet run --project tests/Tests.csproj'
-cp bin/Release/net6.0/ClearMinimap.dll package/ClearMinimap.dll
+dotnet run --project verification/InteropCheck.csproj "-p:MelonLoaderDir=$MelonLoaderDir" -- bin/Release/net6.0/ClearMinimap.dll "$MelonLoaderDir/Il2CppAssemblies"
 ```
 
-The DLL is written to `bin/Release/net6.0/`. Packaging produces a Thunderstore
-ZIP in `dist/`. Copy `bin/Release/net6.0/ClearMinimap.dll` into `package/` after
-building, then follow the packaging steps below. Commit that DLL alongside its
-source changes. The `bin/` and `dist/` directories remain ignored.
+## Package and release
 
-## Formatting
-
-Set `MelonLoaderDir` as an environment variable when formatting the main
-project:
-`MelonLoaderDir=/path/to/profile/MelonLoader dotnet format ClearMinimap.csproj`
-on Linux, or set `$env:MelonLoaderDir` in PowerShell before running the
-formatter. Run `dotnet format tests/Tests.csproj` for tests and `cargo fmt` for
-the Rust release utility.
-
-Format Markdown with Neovim's configured `mdformat --wrap 80 --number`,
-including the GFM, footnote, and frontmatter plugins. Avoid semicolons in prose.
-
-## In-game checks
-
-Standalone checks cover projection, clipping, heading, texture sizing, and
-movement smoothing. Run the interop check after a Release build:
-
-```sh
-nix-shell -p dotnet-sdk_8 --run 'dotnet run --project verification/InteropCheck.csproj -p:MelonLoaderDir=/path/to/profile/MelonLoader -- bin/Release/net6.0/ClearMinimap.dll /path/to/profile/MelonLoader/Il2CppAssemblies'
-```
-
-It detects known throwing wrappers, invalid reference-wrapper initialization,
-and immediate-mode drawing in the minimap renderer. Native rendering still needs
-checks:
-
-- Compare landmarks with the phone map before and after opening it. Walk,
-  strafe, turn, teleport, and look vertically. The map and marker positions must
-  stay aligned.
-- Check pickups, tracked objectives, deals, owned properties, and teammate edge
-  markers. Complete objectives and change dealer assignments during play.
-- Compare four-player markers through joining, leaving, and scene reloads.
-- Change visibility and size in both Mods menus. Check the preview, persistence,
-  phone/pause/death visibility, and conflicts with another minimap mod.
-- Check 720p, 1080p, 1440p, and ultrawide layouts. Verify the daily duck marker
-  remains readable, follows camera heading, and survives reloading that day.
-
-Game assets are referenced at runtime and must not be distributed.
-
-## Packaging
-
-The PNG icon is copied from
-[the studio brand assets](https://github.com/holyfurries/brand-assets/tree/main/logos).
-Edit its SVG there and copy the regenerated PNG here. Its asset terms ship as
-`icon-LICENSE`.
-
-Thunderstore CLI builds the ZIP. The Rust utility validates metadata, generates
-its configuration from `package/manifest.json`, and checks the finished archive.
-It does not build ZIPs.
+Copy the Release DLL to `package/ClearMinimap.dll`, then run:
 
 ```console
 cargo run --locked -- metadata
@@ -89,37 +66,14 @@ dotnet tool run tcli build --config-path dist/thunderstore.toml
 cargo run --locked -- package
 ```
 
-On Nix, run these commands inside `nix-shell -p cargo rustc dotnet-sdk_8`. ZIP
-names follow `holyfurries-ClearMinimap-<version>.zip`.
+The validated ZIP is written to `dist/holyfurries-ClearMinimap-<version>.zip`.
+The studio icon ships with `icon-LICENSE`.
 
-## GitHub Actions
+Update the changelog and align versions in `ClearMinimap.csproj`,
+`package/manifest.json`, and `MelonInfo`. Commit source, metadata, and the
+refreshed DLL together.
 
-`Package and publish` runs standalone tests and release-metadata checks on pull
-requests. Pushes to main and manual runs also package the committed DLL into a
-validated Thunderstore ZIP. Download the `thunderstore-package` artifact from
-the run and extract the mod ZIP inside. Artifacts expire after 30 days.
-
-CI packages `package/ClearMinimap.dll`. It does not compile the mod or need game
-references. Rebuild locally and copy the DLL into `package/` whenever the mod
-source changes. CI tests source code separately. Those tests do not prove the
-committed DLL matches that source or that multiplayer works.
-
-## Publishing
-
-1. Update the version in the project, package manifest and MelonInfo attribute
-   together.
-2. Build locally, run tests, and copy the refreshed DLL into `package/`.
-3. Commit and push the source, metadata and refreshed
-   `package/ClearMinimap.dll`.
-4. Create and push a matching `vX.Y.Z` tag.
-
-**Pushing the version tag publishes to Thunderstore automatically** after checks
-and packaging pass. Main-branch pushes and manual runs only create ZIP
-artifacts. The tag must match the manifest version.
-
-Publishing uses the existing `TCLI_AUTH_TOKEN` Actions secret and official
-`tcli` 0.2.4, uploading the exact ZIP artifact to `holyfurries` / `schedule-i`.
-No private reference repository or reference token is needed.
-
-Existing Thunderstore versions cannot be replaced. Bump the version for each
-release. If an upload fails, check Thunderstore before rerunning the workflow.
+**Pushing a matching `vX.Y.Z` tag publishes to Thunderstore automatically.**
+Main-branch pushes produce package artifacts. CI packages the committed DLL
+without compiling against game references. Publishing requires the
+`TCLI_AUTH_TOKEN` Actions secret.

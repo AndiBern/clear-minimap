@@ -3,9 +3,26 @@ using System.Numerics;
 
 namespace ClearMinimap;
 
+internal enum MapCorner { TopRight, TopLeft, BottomRight, BottomLeft }
+
 internal static class MapProjection
 {
     public static float size(float value) => float.IsFinite(value) ? Math.Clamp(value, 200f, 360f) : 280f;
+
+    public static float zoom(float value) => float.IsFinite(value) ? Math.Clamp(value, 0.5f, 4f) : 1f;
+
+    public static Vector2 panel_position(Vector2 screen, float size_pixels, MapCorner corner, Vector2 margins)
+    {
+        if (!float.IsFinite(screen.LengthSquared()) || screen.X <= 0 || screen.Y <= 0)
+            throw new ArgumentOutOfRangeException(nameof(screen));
+        float width = size(size_pixels);
+        float horizontal = float.IsFinite(margins.X) ? Math.Clamp(margins.X, 0, 1600) : 16f;
+        float vertical = float.IsFinite(margins.Y) ? Math.Clamp(margins.Y, 0, 900) : 16f;
+        bool left = corner is MapCorner.TopLeft or MapCorner.BottomLeft;
+        bool bottom = corner is MapCorner.BottomLeft or MapCorner.BottomRight;
+        return new Vector2(Math.Clamp(left ? horizontal : screen.X - width - horizontal, 3f, Math.Max(3f, screen.X - width - 3f)),
+            Math.Clamp(bottom ? screen.Y - width - 24f - vertical : vertical, 3f, Math.Max(3f, screen.Y - width - 24f)));
+    }
 
     public static bool try_offset(Vector2 point, Vector2 center, Vector2 span, float size_pixels,
         bool edge_marker, out Vector2 offset, out bool at_edge)

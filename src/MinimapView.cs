@@ -37,14 +37,14 @@ internal sealed class MinimapView
 
     public void hide() => overlay.hide();
 
-    public void draw(Rect panel, bool map_available, float scale)
+    public void draw(Rect panel, bool map_available, float scale, float zoom, bool show_npcs)
     {
         overlay.begin(scale);
-        try { draw_content(panel, map_available); }
+        try { draw_content(panel, map_available, zoom, show_npcs); }
         finally { overlay.end(); }
     }
 
-    private void draw_content(Rect panel, bool map_available)
+    private void draw_content(Rect panel, bool map_available, float zoom, bool show_npcs)
     {
         for (int i = 0; i < icons.Length; i++) icons[i] ??= create_icon(i);
         overlay.box(new Rect(panel.x - 3, panel.y - 3, panel.width + 6, panel.height + 26), background);
@@ -73,8 +73,9 @@ internal sealed class MinimapView
         Vector player_position = motion.sample(long.MinValue,
             new Vector(player.transform.position.x, player.transform.position.z), frame, seconds);
         Vector center = MapProjection.world_position(player_position, origin_uv, axis_x, axis_z);
-        Vector span = new(220f * MathF.Sqrt(axis_x.X * axis_x.X + axis_z.X * axis_z.X),
-            220f * MathF.Sqrt(axis_x.Y * axis_x.Y + axis_z.Y * axis_z.Y));
+        float coverage_metres = 220f / MapProjection.zoom(zoom);
+        Vector span = new(coverage_metres * MathF.Sqrt(axis_x.X * axis_x.X + axis_z.X * axis_z.X),
+            coverage_metres * MathF.Sqrt(axis_x.Y * axis_x.Y + axis_z.Y * axis_z.Y));
         if (!float.IsFinite(span.LengthSquared()) || span.X < 0.00001f || span.Y < 0.00001f) return;
         if (MapProjection.clip(center, span, out Vector minimum, out Vector maximum))
         {
@@ -90,6 +91,10 @@ internal sealed class MinimapView
         for (int i = 0; i < MapMarkers.count; i++)
         {
             MapMarker marker = MapMarkers.markers[i];
+            if (marker.kind == MarkerKind.NPC)
+            {
+                if (!show_npcs || marker.target == null || !marker.target.gameObject.activeInHierarchy) continue;
+            }
             bool important = marker.kind is MarkerKind.Teammate or MarkerKind.Deal or MarkerKind.Objective;
             Vector3 position = marker.target != null ? marker.target.position : marker.position;
             Vector marker_position = motion.sample(marker.source.ToInt64(), new Vector(position.x, position.z), frame, seconds);
