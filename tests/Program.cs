@@ -6,6 +6,23 @@ internal static class Program
 {
     private static void Main()
     {
+        MarkerKind[] kinds = Enum.GetValues<MarkerKind>();
+        MarkerVisibility all = new(true, true, true, true, true, true);
+        MarkerVisibility none = new(false, false, false, false, false, false);
+        MarkerVisibility[] hidden =
+        {
+            all with { places = false }, all with { properties = false }, all with { deals = false },
+            all with { teammates = false }, all with { objectives = false }, all with { npcs = false }
+        };
+        require(kinds.Length == hidden.Length, "Every marker category has an independent toggle");
+        for (int i = 0; i < kinds.Length; i++)
+        {
+            require(all.allows(kinds[i]), "All marker categories are visible by default");
+            require(!none.allows(kinds[i]), "All marker categories can be hidden");
+            for (int j = 0; j < hidden.Length; j++)
+                require(hidden[j].allows(kinds[i]) == (i != j), "Each marker toggle changes only its own category");
+        }
+
         uint first_day = MarkerDay.score("test-player", 1);
         if (first_day != MarkerDay.score("test-player", 1) || first_day == MarkerDay.score("test-player", 2))
             throw new InvalidOperationException("Daily cosmetic selection must survive reload and vary by day.");
@@ -119,7 +136,7 @@ internal static class Program
         motion.reset();
         for (int identity = 0; identity < 200; identity++)
             require(motion.sample(identity, new Vector2(identity, 0), identity, identity) == new Vector2(identity, 0), "Marker churn remains bounded and starts at current position");
-        Console.WriteLine("Map projection, zoom, placement, heading, edge markers, texture clipping, and size checks passed.");
+        Console.WriteLine("Marker visibility, map projection, zoom, placement, heading, edge markers, texture clipping, and size checks passed.");
     }
 
     private static void require(bool condition, string message)

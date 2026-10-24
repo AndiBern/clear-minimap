@@ -31,6 +31,10 @@ wide by default, adjustable from 200 to 360. Zoom ranges from 0.5× to 4×.
 control and press a key, use **Backspace** to disable it, or **Escape** to
 cancel. Changes apply live and are saved in `UserData/MelonPreferences.cfg`.
 
+Toggle teammates, properties, deals, objectives, places, and NPCs independently.
+All marker categories are enabled by default. Hiding a category also hides its
+labels and edge pointers.
+
 **Show phone map NPCs** includes NPC icons visible on the native phone map and
 is enabled by default. NPCs use the native icon and color, disappear outside the
 minimap, and give way to deals, objectives, and other existing markers when

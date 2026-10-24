@@ -21,6 +21,11 @@ public sealed class Main : MelonMod
     private MelonPreferences_Entry<float> map_size = null!;
     private MelonPreferences_Entry<bool> enabled = null!;
     private MelonPreferences_Entry<bool> show_npcs = null!;
+    private MelonPreferences_Entry<bool> show_teammates = null!;
+    private MelonPreferences_Entry<bool> show_properties = null!;
+    private MelonPreferences_Entry<bool> show_deals = null!;
+    private MelonPreferences_Entry<bool> show_objectives = null!;
+    private MelonPreferences_Entry<bool> show_places = null!;
     private MelonPreferences_Entry<float> zoom = null!;
     private MelonPreferences_Entry<MapCorner> corner = null!;
     private MelonPreferences_Entry<float> horizontal_margin = null!;
@@ -38,6 +43,11 @@ public sealed class Main : MelonMod
         map_size = preferences.CreateEntry<float>("size", 280f, "Minimap size");
         enabled = preferences.CreateEntry<bool>("enabled", true, "Show minimap");
         show_npcs = preferences.CreateEntry<bool>("show_npcs", true, "Show phone map NPCs");
+        show_teammates = preferences.CreateEntry("show_teammates", true, "Show teammates");
+        show_properties = preferences.CreateEntry("show_properties", true, "Show properties");
+        show_deals = preferences.CreateEntry("show_deals", true, "Show deals");
+        show_objectives = preferences.CreateEntry("show_objectives", true, "Show objectives");
+        show_places = preferences.CreateEntry("show_places", true, "Show places");
         zoom = preferences.CreateEntry<float>("zoom", 1f, "Zoom");
         zoom_in_key = preferences.CreateEntry("zoom_in_key", KeyCode.PageUp, "Zoom in shortcut");
         zoom_out_key = preferences.CreateEntry("zoom_out_key", KeyCode.PageDown, "Zoom out shortcut");
@@ -46,6 +56,11 @@ public sealed class Main : MelonMod
         vertical_margin = preferences.CreateEntry<float>("vertical_margin", 16f, "Vertical margin");
         ModSettings.Settings.toggle("Clear Minimap", "Show minimap", enabled);
         ModSettings.Settings.slider("Clear Minimap", "Minimap size", map_size, minimum: 200f, maximum: 360f, whole_numbers: true);
+        ModSettings.Settings.toggle("Clear Minimap", "Show teammates", show_teammates);
+        ModSettings.Settings.toggle("Clear Minimap", "Show properties", show_properties);
+        ModSettings.Settings.toggle("Clear Minimap", "Show deals", show_deals);
+        ModSettings.Settings.toggle("Clear Minimap", "Show objectives", show_objectives);
+        ModSettings.Settings.toggle("Clear Minimap", "Show places", show_places);
         ModSettings.Settings.toggle("Clear Minimap", "Show phone map NPCs", show_npcs);
         ModSettings.Settings.slider("Clear Minimap", "Zoom", zoom, minimum: 0.5f, maximum: 4f);
         ModSettings.Settings.keybind("Clear Minimap", "Zoom in shortcut", zoom_in_key);
@@ -133,10 +148,14 @@ public sealed class Main : MelonMod
             float size = MapProjection.size(map_size.Value);
             System.Numerics.Vector2 position = MapProjection.panel_position(new(Screen.width / scale, Screen.height / scale), size,
                 corner.Value, new(horizontal_margin.Value, vertical_margin.Value));
-            view.draw(new Rect(position.X, position.Y, size, size), available, scale, MapProjection.zoom(zoom.Value), show_npcs.Value);
+            view.draw(new Rect(position.X, position.Y, size, size), available, scale, MapProjection.zoom(zoom.Value), marker_visibility());
         }
         catch (Exception error) { fail(error); }
     }
+
+    private MarkerVisibility marker_visibility() => new(
+        places: show_places.Value, properties: show_properties.Value, deals: show_deals.Value,
+        teammates: show_teammates.Value, objectives: show_objectives.Value, npcs: show_npcs.Value);
 
     private static bool settings_open()
     {

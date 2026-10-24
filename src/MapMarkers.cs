@@ -8,7 +8,6 @@ using UnityEngine.UI;
 
 namespace ClearMinimap;
 
-internal enum MarkerKind { Place, Home, Deal, Teammate, Objective, NPC }
 internal readonly record struct MapMarker(Vector3 position, string label, MarkerKind kind, IntPtr source, Sprite? sprite, Transform? target, Color tint);
 
 internal static class MapMarkers

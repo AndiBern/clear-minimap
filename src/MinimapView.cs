@@ -37,14 +37,14 @@ internal sealed class MinimapView
 
     public void hide() => overlay.hide();
 
-    public void draw(Rect panel, bool map_available, float scale, float zoom, bool show_npcs)
+    public void draw(Rect panel, bool map_available, float scale, float zoom, MarkerVisibility visibility)
     {
         overlay.begin(scale);
-        try { draw_content(panel, map_available, zoom, show_npcs); }
+        try { draw_content(panel, map_available, zoom, visibility); }
         finally { overlay.end(); }
     }
 
-    private void draw_content(Rect panel, bool map_available, float zoom, bool show_npcs)
+    private void draw_content(Rect panel, bool map_available, float zoom, MarkerVisibility visibility)
     {
         for (int i = 0; i < icons.Length; i++) icons[i] ??= create_icon(i);
         overlay.box(new Rect(panel.x - 3, panel.y - 3, panel.width + 6, panel.height + 26), background);
@@ -91,9 +91,10 @@ internal sealed class MinimapView
         for (int i = 0; i < MapMarkers.count; i++)
         {
             MapMarker marker = MapMarkers.markers[i];
+            if (!visibility.allows(marker.kind)) continue;
             if (marker.kind == MarkerKind.NPC)
             {
-                if (!show_npcs || marker.target == null || !marker.target.gameObject.activeInHierarchy) continue;
+                if (marker.target == null || !marker.target.gameObject.activeInHierarchy) continue;
             }
             bool important = marker.kind is MarkerKind.Teammate or MarkerKind.Deal or MarkerKind.Objective;
             Vector3 position = marker.target != null ? marker.target.position : marker.position;
