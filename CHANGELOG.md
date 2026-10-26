@@ -2,6 +2,8 @@
 
 ## 0.3.0 (unreleased)
 
+- Outline the player marker and draw it above other minimap elements.
+
 - Add separate visibility toggles for teammates, properties, deals, objectives,
   and places alongside the NPC toggle.
 

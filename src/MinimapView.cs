@@ -144,16 +144,18 @@ internal sealed class MinimapView
             Vector direction = axis_x * forward.x + axis_z * forward.z;
             heading_degrees = MapProjection.heading(new Vector(direction.X / span.X, direction.Y / span.Y));
         }
+        string time = TimeManager.InstanceExists ? $"{TimeManager.Instance.CurrentTime / 100:00}:{TimeManager.Instance.CurrentTime % 100:00}" : "";
+        overlay.label(new Rect(panel.x + 6, panel.yMax + 3, panel.width - 12, 18), time, Color.white);
         bool duck = TimeManager.InstanceExists && !string.IsNullOrEmpty(player.PlayerCode) &&
             MarkerDay.score(player.PlayerCode, TimeManager.Instance.ElapsedDays) % 100 == 0;
         if (duck)
         {
+            overlay.texture(new Rect(panel.center.x - 12, panel.center.y - 12, 24, 24),
+                icons[5], new Rect(0, 0, 1, 1), new Color(0.025f, 0.035f, 0.045f, 1), heading_degrees);
             overlay.texture(new Rect(panel.center.x - 10, panel.center.y - 10, 20, 20),
                 icons[5], new Rect(0, 0, 1, 1), new Color(1f, 0.85f, 0.15f, 1), heading_degrees);
         }
         else draw_arrow(panel.center, heading_degrees, 16, Color.white);
-        string time = TimeManager.InstanceExists ? $"{TimeManager.Instance.CurrentTime / 100:00}:{TimeManager.Instance.CurrentTime % 100:00}" : "";
-        overlay.label(new Rect(panel.x + 6, panel.yMax + 3, panel.width - 12, 18), time, Color.white);
     }
 
     private static Matrix4x4 map_transform(Transform container, Transform image)
@@ -204,6 +206,9 @@ internal sealed class MinimapView
 
     private void draw_arrow(Vector2 point, float angle, float size, Color color)
     {
+        float outline_size = size + 4;
+        overlay.texture(new Rect(point.x - outline_size / 2, point.y - outline_size / 2, outline_size, outline_size),
+            icons[0], new Rect(0, 0, 1, 1), new Color(0.025f, 0.035f, 0.045f, 1), angle);
         overlay.texture(new Rect(point.x - size / 2, point.y - size / 2, size, size),
             icons[0], new Rect(0, 0, 1, 1), color, angle);
     }
