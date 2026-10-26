@@ -28,8 +28,8 @@ public sealed class Main : MelonMod
     private MelonPreferences_Entry<bool> show_places = null!;
     private MelonPreferences_Entry<float> zoom = null!;
     private MelonPreferences_Entry<MapCorner> corner = null!;
-    private MelonPreferences_Entry<float> horizontal_margin = null!;
-    private MelonPreferences_Entry<float> vertical_margin = null!;
+    private MelonPreferences_Entry<int> horizontal_offset_percent = null!;
+    private MelonPreferences_Entry<int> vertical_offset_percent = null!;
     private MelonPreferences_Entry<KeyCode> zoom_in_key = null!;
     private MelonPreferences_Entry<KeyCode> zoom_out_key = null!;
     private bool running;
@@ -53,8 +53,8 @@ public sealed class Main : MelonMod
         zoom_in_key = preferences.CreateEntry("zoom_in_key", KeyCode.PageUp, "Zoom in shortcut");
         zoom_out_key = preferences.CreateEntry("zoom_out_key", KeyCode.PageDown, "Zoom out shortcut");
         corner = preferences.CreateEntry("corner", MapCorner.TopRight, "Screen corner");
-        horizontal_margin = preferences.CreateEntry<float>("horizontal_margin", 16f, "Horizontal margin");
-        vertical_margin = preferences.CreateEntry<float>("vertical_margin", 16f, "Vertical margin");
+        horizontal_offset_percent = preferences.CreateEntry("horizontal_offset_percent", 1, "Horizontal offset (%)");
+        vertical_offset_percent = preferences.CreateEntry("vertical_offset_percent", 1, "Vertical offset (%)");
         ModSettings.Settings.toggle("Clear Minimap", "Show minimap", enabled);
         ModSettings.Settings.slider("Clear Minimap", "Minimap size", map_size, minimum: 200f, maximum: 360f, whole_numbers: true);
         ModSettings.Settings.toggle("Clear Minimap", "Show teammates", show_teammates);
@@ -67,8 +67,8 @@ public sealed class Main : MelonMod
         ModSettings.Settings.keybind("Clear Minimap", "Zoom in shortcut", zoom_in_key);
         ModSettings.Settings.keybind("Clear Minimap", "Zoom out shortcut", zoom_out_key);
         ModSettings.Settings.dropdown("Clear Minimap", "Screen corner", corner);
-        ModSettings.Settings.slider("Clear Minimap", "Horizontal margin", horizontal_margin, minimum: 0f, maximum: 1600f, whole_numbers: true);
-        ModSettings.Settings.slider("Clear Minimap", "Vertical margin", vertical_margin, minimum: 0f, maximum: 900f, whole_numbers: true);
+        ModSettings.Settings.slider("Clear Minimap", "Horizontal offset (%)", horizontal_offset_percent, minimum: 0, maximum: 100);
+        ModSettings.Settings.slider("Clear Minimap", "Vertical offset (%)", vertical_offset_percent, minimum: 0, maximum: 100);
         HarmonyInstance.Patch(AccessTools.Method(typeof(POI), nameof(POI.OnEnable)),
             postfix: new HarmonyMethod(typeof(Main), nameof(register_point)));
         HarmonyInstance.Patch(AccessTools.Method(typeof(POI), nameof(POI.OnDisable)),
@@ -148,7 +148,7 @@ public sealed class Main : MelonMod
             float scale = Math.Clamp(Screen.height / 1080f, 0.65f, 2f);
             float size = MapProjection.size(map_size.Value);
             System.Numerics.Vector2 position = MapProjection.panel_position(new(Screen.width / scale, Screen.height / scale), size,
-                corner.Value, new(horizontal_margin.Value, vertical_margin.Value));
+                corner.Value, new(horizontal_offset_percent.Value, vertical_offset_percent.Value));
             view.draw(new Rect(position.X, position.Y, size, size), available, scale, MapProjection.zoom(zoom.Value), marker_visibility());
         }
         catch (Exception error) { fail(error); }

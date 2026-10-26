@@ -11,17 +11,18 @@ internal static class MapProjection
 
     public static float zoom(float value) => float.IsFinite(value) ? Math.Clamp(value, 0.5f, 4f) : 1f;
 
-    public static Vector2 panel_position(Vector2 screen, float size_pixels, MapCorner corner, Vector2 margins)
+    public static Vector2 panel_position(Vector2 screen, float size_pixels, MapCorner corner, Vector2 offset_percent)
     {
         if (!float.IsFinite(screen.LengthSquared()) || screen.X <= 0 || screen.Y <= 0)
             throw new ArgumentOutOfRangeException(nameof(screen));
         float width = size(size_pixels);
-        float horizontal = float.IsFinite(margins.X) ? Math.Clamp(margins.X, 0, 1600) : 16f;
-        float vertical = float.IsFinite(margins.Y) ? Math.Clamp(margins.Y, 0, 900) : 16f;
+        float horizontal = float.IsFinite(offset_percent.X) ? Math.Clamp(offset_percent.X, 0, 100) / 100f : 0.01f;
+        float vertical = float.IsFinite(offset_percent.Y) ? Math.Clamp(offset_percent.Y, 0, 100) / 100f : 0.01f;
+        Vector2 travel = new(Math.Max(0, screen.X - width - 6f), Math.Max(0, screen.Y - width - 27f));
         bool left = corner is MapCorner.TopLeft or MapCorner.BottomLeft;
         bool bottom = corner is MapCorner.BottomLeft or MapCorner.BottomRight;
-        return new Vector2(Math.Clamp(left ? horizontal : screen.X - width - horizontal, 3f, Math.Max(3f, screen.X - width - 3f)),
-            Math.Clamp(bottom ? screen.Y - width - 24f - vertical : vertical, 3f, Math.Max(3f, screen.Y - width - 24f)));
+        return new Vector2(3f + (left ? horizontal : 1f - horizontal) * travel.X,
+            3f + (bottom ? 1f - vertical : vertical) * travel.Y);
     }
 
     public static bool try_offset(Vector2 point, Vector2 center, Vector2 span, float size_pixels,

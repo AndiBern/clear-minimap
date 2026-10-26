@@ -30,8 +30,8 @@ motion. Check these in-game:
 
 - Compare landmarks and NPC icons with the phone map, including moving NPCs and
   hidden icons. Test before and after opening the phone map.
-- Change zoom, size, corner, and margins. Check map and marker alignment,
-  teammate edge pointers, and room for the clock.
+- Change zoom, size, corner, and placement percentages. Check map and marker
+  alignment, teammate edge pointers, and room for the clock.
 - Rebind and disable zoom shortcuts. Check persistence after restarting and
   ensure shortcuts do nothing while settings, the phone, or pause menu is open.
 - Check markers and visibility through multiplayer joins and scene changes.

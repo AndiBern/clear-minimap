@@ -2,6 +2,9 @@
 
 ## 0.3.0 (unreleased)
 
+- Use 0–100% placement offsets with one-percent steps and precise number entry
+  through ModSettings 0.3.1.
+
 - Refresh NPC markers on the next update when their visibility is toggled.
 
 - Outline the player marker and draw it above other minimap elements.
@@ -16,10 +19,10 @@
 - Add configurable zoom shortcuts through ModSettings, defaulting to PageUp and
   PageDown.
 
-- Add corner selection and horizontal and vertical margins, keeping the frame
-  and clock inside the viewport when space permits.
+- Add corner selection and horizontal and vertical placement offsets, keeping
+  the frame and clock inside the viewport when space permits.
 
-- Require ModSettings 0.3.0.
+- Require ModSettings 0.3.1.
 
 - Update the package icon and release tooling.
 

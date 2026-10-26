@@ -55,22 +55,32 @@ internal static class Program
         require(MapProjection.try_offset(new Vector2(0.56f, 0.5f), center, span / 2, 280, true, out offset, out edge) &&
             edge && Math.Abs(offset.X - 128) < 0.01f, "Zoom preserves useful edge pointers");
         Vector2 screen = new(1920, 1080);
-        Vector2 margins = new(16);
-        require(MapProjection.panel_position(screen, 280, MapCorner.TopRight, margins) == new Vector2(1624, 16),
-            "Default layout remains at the top right");
-        require(MapProjection.panel_position(screen, 280, MapCorner.TopLeft, margins) == new Vector2(16, 16), "Top left placement");
-        require(MapProjection.panel_position(screen, 280, MapCorner.BottomLeft, margins) == new Vector2(16, 760),
-            "Bottom placement reserves room for the clock");
-        require(MapProjection.panel_position(screen, 280, MapCorner.BottomRight, margins) == new Vector2(1624, 760), "Bottom right placement");
-        require(MapProjection.panel_position(screen, 280, (MapCorner)99, new(float.NaN)) == new Vector2(1624, 16),
-            "Invalid corner and margins use defaults");
+        Vector2 offset_percent = new(1);
+        require(Vector2.Distance(MapProjection.panel_position(screen, 280, MapCorner.TopRight, offset_percent), new Vector2(1620.66f, 10.73f)) < 0.001f,
+            "Default placement is one percent from the selected corner");
+        require(MapProjection.panel_position(screen, 280, MapCorner.TopLeft, Vector2.Zero) == new Vector2(3, 3),
+            "Zero percent reaches the selected safe corner");
+        require(MapProjection.panel_position(screen, 280, MapCorner.BottomRight, Vector2.Zero) == new Vector2(1637, 776),
+            "Bottom placement reserves room for the frame and clock");
+        require(MapProjection.panel_position(screen, 280, MapCorner.TopLeft, new(100)) == new Vector2(1637, 776),
+            "One hundred percent reaches the opposite safe corner");
+        foreach (MapCorner corner in Enum.GetValues<MapCorner>())
+            require(MapProjection.panel_position(screen, 280, corner, new(50)) == new Vector2(820, 389.5f),
+                "Halfway placement is centered independently of the selected corner");
+        require(Vector2.Distance(MapProjection.panel_position(screen, 280, (MapCorner)99, new(float.NaN)),
+            MapProjection.panel_position(screen, 280, MapCorner.TopRight, offset_percent)) < 0.001f,
+            "Invalid corner and percentages use defaults");
+        Vector2 wide_screen = new(2560, 1080);
+        Vector2 wide_position = MapProjection.panel_position(wide_screen, 280, MapCorner.TopLeft, new(25));
+        require(Math.Abs((wide_position.X - 3) / (wide_screen.X - 286) - 0.25f) < 0.0001f,
+            "Horizontal percentage follows the available width on ultrawide screens");
         foreach (Vector2 viewport in new[] { new Vector2(1108, 1108), screen, new Vector2(2560, 1080) })
         {
             foreach (MapCorner corner in Enum.GetValues<MapCorner>())
             {
-                Vector2 position = MapProjection.panel_position(viewport, 360, corner, new Vector2(1600, 900));
-                require(position.X >= 3 && position.X + 360 + 3 <= viewport.X, "Oversized margins keep the frame inside every screen corner");
-                require(position.Y >= 3 && position.Y + 360 + 24 <= viewport.Y, "Oversized margins keep the clock inside the viewport");
+                Vector2 position = MapProjection.panel_position(viewport, 360, corner, new Vector2(1000, 1000));
+                require(position.X >= 3 && position.X + 360 + 3 <= viewport.X, "Out-of-range percentages keep the frame inside every screen corner");
+                require(position.Y >= 3 && position.Y + 360 + 24 <= viewport.Y, "Out-of-range percentages keep the clock inside the viewport");
             }
         }
         require(MapProjection.clip(new Vector2(0.02f, 0.5f), span, out Vector2 minimum, out Vector2 maximum) && minimum.X == 0 && Math.Abs(maximum.X - 0.12f) < 0.001f, "Texture clips at map boundary instead of wrapping");

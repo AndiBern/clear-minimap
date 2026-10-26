@@ -14,7 +14,7 @@ pause menu is open, except for its settings preview.
 
 ## Install
 
-**IL2CPP only.** Requires **MelonLoader 0.7.3** and **ModSettings 0.3.0**.
+**IL2CPP only.** Requires **MelonLoader 0.7.3** and **ModSettings 0.3.1**.
 
 Disable **SimpleMinimap** or other minimap mods. Install through **r2modman** or
 **Thunderstore Mod Manager**, which installs ModSettings automatically. For
@@ -24,12 +24,15 @@ release ZIPs into the game's `Mods/` folder.
 ## Settings
 
 Open **Settings → Mods → Clear Minimap** to change visibility, size, zoom,
-screen corner, and horizontal/vertical margins. The map is 280 reference pixels
-wide by default, adjustable from 200 to 360. Zoom ranges from 0.5× to 4×.
-**PageUp** zooms in and **PageDown** zooms out by default while playing. Change
-**Zoom in shortcut** and **Zoom out shortcut** in the same menu. Click the
-control and press a key, use **Backspace** to disable it, or **Escape** to
-cancel. Changes apply live and are saved in `UserData/MelonPreferences.cfg`.
+screen corner, and horizontal/vertical placement percentages. The map is 280
+reference pixels wide by default, adjustable from 200 to 360. Zoom ranges from
+0.5× to 4×. **PageUp** zooms in and **PageDown** zooms out by default while
+playing. Change **Zoom in shortcut** and **Zoom out shortcut** in the same menu.
+Click the control and press a key, use **Backspace** to disable it, or
+**Escape** to cancel. Placement defaults to 1% of the available travel from the
+selected corner. Use 0% for that edge, 50% to center, or 100% for the opposite
+edge. Click a slider value to enter an exact number. Changes apply live and are
+saved in `UserData/MelonPreferences.cfg`.
 
 Toggle teammates, properties, deals, objectives, places, and NPCs independently.
 All marker categories are enabled by default. Hiding a category also hides its
