@@ -48,6 +48,7 @@ public sealed class Main : MelonMod
         show_deals = preferences.CreateEntry("show_deals", true, "Show deals");
         show_objectives = preferences.CreateEntry("show_objectives", true, "Show objectives");
         show_places = preferences.CreateEntry("show_places", true, "Show places");
+        show_npcs.OnEntryValueChanged.Subscribe((_, value) => refresh_seconds = 0);
         zoom = preferences.CreateEntry<float>("zoom", 1f, "Zoom");
         zoom_in_key = preferences.CreateEntry("zoom_in_key", KeyCode.PageUp, "Zoom in shortcut");
         zoom_out_key = preferences.CreateEntry("zoom_out_key", KeyCode.PageDown, "Zoom out shortcut");

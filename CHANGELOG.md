@@ -2,6 +2,8 @@
 
 ## 0.3.0 (unreleased)
 
+- Refresh NPC markers on the next update when their visibility is toggled.
+
 - Outline the player marker and draw it above other minimap elements.
 
 - Add separate visibility toggles for teammates, properties, deals, objectives,
