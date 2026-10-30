@@ -12,7 +12,7 @@ internal sealed class MinimapView
 {
     private readonly SpriteTextures sprite_textures = new();
     private readonly MapMotion motion = new();
-    private readonly Texture2D?[] icons = new Texture2D?[6];
+    private readonly Texture2D?[] icons = new Texture2D?[7];
     private readonly MapOverlay overlay = new();
     private readonly Rect[] labels = new Rect[12];
     private readonly Vector2[] placed_markers = new Vector2[96];
@@ -92,7 +92,7 @@ internal sealed class MinimapView
         {
             MapMarker marker = MapMarkers.markers[i];
             if (!visibility.allows(marker.kind)) continue;
-            if (marker.kind is MarkerKind.NPC or MarkerKind.Dealer)
+            if (marker.kind is MarkerKind.NPC or MarkerKind.Dealer or MarkerKind.Vehicle)
             {
                 if (marker.target == null || !marker.target.gameObject.activeInHierarchy) continue;
             }
@@ -192,9 +192,11 @@ internal sealed class MinimapView
     private void draw_marker(Vector2 point, MapMarker marker, Color color)
     {
         Rect rect = new(point.x - 8, point.y - 8, 16, 16);
-        if (marker.kind == MarkerKind.Dealer)
-            overlay.texture(new Rect(point.x - 14, point.y - 14, 28, 28),
-                icons[3], new Rect(0, 0, 1, 1), new Color(1f, 0.75f, 0.15f, 1));
+        if (marker.kind is MarkerKind.Dealer or MarkerKind.Vehicle)
+        {
+            Color outline = marker.kind == MarkerKind.Dealer ? new Color(1f, 0.75f, 0.15f, 1) : new Color(0.3f, 0.8f, 1f, 1);
+            overlay.texture(new Rect(point.x - 14, point.y - 14, 28, 28), icons[3], new Rect(0, 0, 1, 1), outline);
+        }
         if (marker.sprite != null && marker.sprite.texture != null &&
             (!marker.sprite.packed || marker.sprite.packingMode == SpritePackingMode.Rectangle))
         {
@@ -204,7 +206,7 @@ internal sealed class MinimapView
             else { rect.width *= aspect; rect.x = point.x - rect.width / 2; }
             overlay.texture(rect, texture, new Rect(0, 0, 1, 1), marker.tint);
         }
-        else overlay.texture(rect, icons[marker.kind == MarkerKind.Home ? 1 : marker.kind == MarkerKind.Deal ? 2 : marker.kind == MarkerKind.Objective ? 4 : 3], new Rect(0, 0, 1, 1), color);
+        else overlay.texture(rect, icons[marker.kind == MarkerKind.Home ? 1 : marker.kind == MarkerKind.Deal ? 2 : marker.kind == MarkerKind.Objective ? 4 : marker.kind == MarkerKind.Vehicle ? 6 : 3], new Rect(0, 0, 1, 1), color);
     }
 
     private void draw_arrow(Vector2 point, float angle, float size, Color color)
@@ -241,6 +243,9 @@ internal sealed class MinimapView
                             (horizontal * horizontal + (vertical - 0.35f) * (vertical - 0.35f) < 0.12f &&
                             !((horizontal - 0.13f) * (horizontal - 0.13f) + (vertical - 0.4f) * (vertical - 0.4f) < 0.004f)) ||
                             (vertical > 0.55f && vertical < 0.85f && Math.Abs(horizontal) < 0.12f),
+                        6 => (Math.Abs(horizontal) < 0.72f && vertical > -0.35f && vertical < 0.15f) ||
+                            (Math.Abs(horizontal) < 0.48f && vertical >= 0.15f && vertical < 0.55f) ||
+                            (Math.Abs(Math.Abs(horizontal) - 0.43f) < 0.15f && vertical > -0.58f && vertical <= -0.35f),
                         4 => Math.Abs(horizontal) < 0.18f &&
                             ((vertical > -0.15f && vertical < 0.8f) || (vertical > -0.75f && vertical < -0.4f)),
                         _ => horizontal * horizontal + vertical * vertical < 0.45f

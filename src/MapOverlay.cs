@@ -7,7 +7,7 @@ namespace ClearMinimap;
 
 internal sealed class MapOverlay
 {
-    private readonly RawImage?[] images = new RawImage?[144];
+    private readonly RawImage?[] images = new RawImage?[256];
     private readonly Text?[] labels = new Text?[16];
     private Canvas? canvas;
     private Font? font;

@@ -2,6 +2,9 @@
 
 ## 0.3.0 (unreleased)
 
+- Show owned vehicles with blue-outlined markers and a separate visibility
+  toggle. Hide the marker for the vehicle currently occupied by the player.
+
 - Show recruited dealers with gold-outlined portraits and a separate visibility
   toggle.
 

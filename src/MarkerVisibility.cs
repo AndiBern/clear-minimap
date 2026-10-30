@@ -2,10 +2,10 @@ using System;
 
 namespace ClearMinimap;
 
-internal enum MarkerKind { Place, Home, Deal, Teammate, Objective, NPC, Dealer }
+internal enum MarkerKind { Place, Home, Deal, Teammate, Objective, NPC, Dealer, Vehicle }
 
 internal readonly record struct MarkerVisibility(
-    bool places, bool properties, bool deals, bool teammates, bool objectives, bool npcs, bool dealers)
+    bool places, bool properties, bool deals, bool teammates, bool objectives, bool npcs, bool dealers, bool vehicles)
 {
     public bool allows(MarkerKind kind) => kind switch
     {
@@ -16,6 +16,7 @@ internal readonly record struct MarkerVisibility(
         MarkerKind.Objective => objectives,
         MarkerKind.NPC => npcs,
         MarkerKind.Dealer => dealers,
+        MarkerKind.Vehicle => vehicles,
         _ => throw new ArgumentOutOfRangeException(nameof(kind))
     };
 }

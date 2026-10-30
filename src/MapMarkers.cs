@@ -4,6 +4,7 @@ using Il2CppScheduleOne.Economy;
 using Il2CppScheduleOne.PlayerScripts;
 using Il2CppScheduleOne.Property;
 using Il2CppScheduleOne.Quests;
+using Il2CppScheduleOne.Vehicles;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -100,6 +101,22 @@ internal static class MapMarkers
             add(new MapMarker(position, property.propertyName, MarkerKind.Home,
                 property.PoI != null ? property.PoI.Pointer : property.Pointer, image?.sprite, property.PoI != null ? property.PoI.transform : property.transform, image?.color ?? Color.white));
         }
+        POI? current_vehicle_point = null;
+        if (VehicleManager.InstanceExists)
+        {
+            var vehicles = VehicleManager.Instance.PlayerOwnedVehicles;
+            int vehicle_count = vehicles != null ? Math.Min(vehicles.Count, 64) : 0;
+            for (int i = 0; i < vehicle_count && count < markers.Length; i++)
+            {
+                LandVehicle vehicle = vehicles![i];
+                if (vehicle == null || !vehicle.IsPlayerOwned || !vehicle.gameObject.activeInHierarchy) continue;
+                POI? point = vehicle.POI;
+                if (vehicle.LocalPlayerIsInVehicle) { current_vehicle_point = point; continue; }
+                Image? image = foreground_image(point);
+                add(new MapMarker(vehicle.transform.position, vehicle.VehicleName, MarkerKind.Vehicle,
+                    point != null ? point.Pointer : vehicle.Pointer, image?.sprite, vehicle.transform, image?.color ?? Color.white));
+            }
+        }
         var dealers = Dealer.AllPlayerDealers;
         int dealer_count = dealers != null ? Math.Min(dealers.Count, 32) : 0;
         for (int i = 0; i < dealer_count && count < markers.Length; i++)
@@ -117,7 +134,7 @@ internal static class MapMarkers
             POI? point = points[i];
             if (point == null || !point.isActiveAndEnabled || point.TryCast<NPCPoI>() != null ||
                 !point.UISetup || point.UI == null || !point.UI.gameObject.activeSelf ||
-                (local != null && local.PoI == point)) continue;
+                (local != null && local.PoI == point) || (current_vehicle_point != null && current_vehicle_point == point)) continue;
             string label = point.MainText;
             if (string.IsNullOrWhiteSpace(label)) continue;
             Image? image = foreground_image(point);

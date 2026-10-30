@@ -7,13 +7,13 @@ internal static class Program
     private static void Main()
     {
         MarkerKind[] kinds = Enum.GetValues<MarkerKind>();
-        MarkerVisibility all = new(true, true, true, true, true, true, true);
-        MarkerVisibility none = new(false, false, false, false, false, false, false);
+        MarkerVisibility all = new(true, true, true, true, true, true, true, true);
+        MarkerVisibility none = new(false, false, false, false, false, false, false, false);
         MarkerVisibility[] hidden =
         {
             all with { places = false }, all with { properties = false }, all with { deals = false },
             all with { teammates = false }, all with { objectives = false }, all with { npcs = false },
-            all with { dealers = false }
+            all with { dealers = false }, all with { vehicles = false }
         };
         require(kinds.Length == hidden.Length, "Every marker category has an independent toggle");
         for (int i = 0; i < kinds.Length; i++)
