@@ -92,7 +92,7 @@ internal sealed class MinimapView
         {
             MapMarker marker = MapMarkers.markers[i];
             if (!visibility.allows(marker.kind)) continue;
-            if (marker.kind == MarkerKind.NPC)
+            if (marker.kind is MarkerKind.NPC or MarkerKind.Dealer)
             {
                 if (marker.target == null || !marker.target.gameObject.activeInHierarchy) continue;
             }
@@ -192,6 +192,9 @@ internal sealed class MinimapView
     private void draw_marker(Vector2 point, MapMarker marker, Color color)
     {
         Rect rect = new(point.x - 8, point.y - 8, 16, 16);
+        if (marker.kind == MarkerKind.Dealer)
+            overlay.texture(new Rect(point.x - 14, point.y - 14, 28, 28),
+                icons[3], new Rect(0, 0, 1, 1), new Color(1f, 0.75f, 0.15f, 1));
         if (marker.sprite != null && marker.sprite.texture != null &&
             (!marker.sprite.packed || marker.sprite.packingMode == SpritePackingMode.Rectangle))
         {

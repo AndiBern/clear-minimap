@@ -2,6 +2,9 @@
 
 ## 0.3.0 (unreleased)
 
+- Show recruited dealers with gold-outlined portraits and a separate visibility
+  toggle.
+
 - Use 0–100% placement offsets with one-percent steps and precise number entry
   through ModSettings 0.3.1.
 

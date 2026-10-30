@@ -34,7 +34,8 @@ selected corner. Use 0% for that edge, 50% to center, or 100% for the opposite
 edge. Click a slider value to enter an exact number. Changes apply live and are
 saved in `UserData/MelonPreferences.cfg`.
 
-Toggle teammates, properties, deals, objectives, places, and NPCs independently.
+Toggle teammates, properties, deals, objectives, places, NPCs, and recruited
+dealers independently. Dealers use their native portrait with a gold outline.
 All marker categories are enabled by default. Hiding a category also hides its
 labels and edge pointers.
 

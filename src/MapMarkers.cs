@@ -1,5 +1,6 @@
 using System;
 using Il2CppScheduleOne.Map;
+using Il2CppScheduleOne.Economy;
 using Il2CppScheduleOne.PlayerScripts;
 using Il2CppScheduleOne.Property;
 using Il2CppScheduleOne.Quests;
@@ -99,6 +100,18 @@ internal static class MapMarkers
             add(new MapMarker(position, property.propertyName, MarkerKind.Home,
                 property.PoI != null ? property.PoI.Pointer : property.Pointer, image?.sprite, property.PoI != null ? property.PoI.transform : property.transform, image?.color ?? Color.white));
         }
+        var dealers = Dealer.AllPlayerDealers;
+        int dealer_count = dealers != null ? Math.Min(dealers.Count, 32) : 0;
+        for (int i = 0; i < dealer_count && count < markers.Length; i++)
+        {
+            Dealer dealer = dealers![i];
+            if (dealer == null || !dealer.IsRecruited || !dealer.gameObject.activeInHierarchy) continue;
+            NPCPoI? point = dealer.DealerPoI;
+            Image? image = foreground_image(point);
+            Sprite? portrait = image != null ? image.sprite : dealer.MugshotSprite;
+            add(new MapMarker(dealer.transform.position, dealer.FullName, MarkerKind.Dealer,
+                point != null ? point.Pointer : dealer.Pointer, portrait, dealer.transform, image?.color ?? Color.white));
+        }
         for (int i = 0; i < points.Length && count < markers.Length; i++)
         {
             POI? point = points[i];
@@ -120,6 +133,8 @@ internal static class MapMarkers
             NPCPoI? point = registered.TryCast<NPCPoI>();
             if (point == null || !point.isActiveAndEnabled || !point.UISetup || point.UI == null ||
                 !point.UI.gameObject.activeSelf || point.NPC == null || !point.NPC.gameObject.activeInHierarchy) continue;
+            Dealer? dealer = point.NPC.TryCast<Dealer>();
+            if (dealer != null && dealer.IsRecruited) continue;
             Image? image = foreground_image(point);
             if (image == null) continue;
             string label = point.MainText;

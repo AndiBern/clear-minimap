@@ -21,6 +21,7 @@ public sealed class Main : MelonMod
     private MelonPreferences_Entry<float> map_size = null!;
     private MelonPreferences_Entry<bool> enabled = null!;
     private MelonPreferences_Entry<bool> show_npcs = null!;
+    private MelonPreferences_Entry<bool> show_dealers = null!;
     private MelonPreferences_Entry<bool> show_teammates = null!;
     private MelonPreferences_Entry<bool> show_properties = null!;
     private MelonPreferences_Entry<bool> show_deals = null!;
@@ -43,6 +44,7 @@ public sealed class Main : MelonMod
         map_size = preferences.CreateEntry<float>("size", 280f, "Minimap size");
         enabled = preferences.CreateEntry<bool>("enabled", true, "Show minimap");
         show_npcs = preferences.CreateEntry<bool>("show_npcs", true, "Show phone map NPCs");
+        show_dealers = preferences.CreateEntry("show_dealers", true, "Show recruited dealers");
         show_teammates = preferences.CreateEntry("show_teammates", true, "Show teammates");
         show_properties = preferences.CreateEntry("show_properties", true, "Show properties");
         show_deals = preferences.CreateEntry("show_deals", true, "Show deals");
@@ -63,6 +65,7 @@ public sealed class Main : MelonMod
         ModSettings.Settings.toggle("Clear Minimap", "Show objectives", show_objectives);
         ModSettings.Settings.toggle("Clear Minimap", "Show places", show_places);
         ModSettings.Settings.toggle("Clear Minimap", "Show phone map NPCs", show_npcs);
+        ModSettings.Settings.toggle("Clear Minimap", "Show recruited dealers", show_dealers);
         ModSettings.Settings.slider("Clear Minimap", "Zoom", zoom, minimum: 0.5f, maximum: 4f);
         ModSettings.Settings.keybind("Clear Minimap", "Zoom in shortcut", zoom_in_key);
         ModSettings.Settings.keybind("Clear Minimap", "Zoom out shortcut", zoom_out_key);
@@ -156,7 +159,7 @@ public sealed class Main : MelonMod
 
     private MarkerVisibility marker_visibility() => new(
         places: show_places.Value, properties: show_properties.Value, deals: show_deals.Value,
-        teammates: show_teammates.Value, objectives: show_objectives.Value, npcs: show_npcs.Value);
+        teammates: show_teammates.Value, objectives: show_objectives.Value, npcs: show_npcs.Value, dealers: show_dealers.Value);
 
     private static bool settings_open()
     {
