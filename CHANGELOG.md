@@ -2,6 +2,9 @@
 
 ## 0.3.0 (unreleased)
 
+- Keep nearby NPC markers visible when they overlap and extend map edges into
+  the surrounding area.
+
 - Show owned vehicles with blue-outlined markers and a separate visibility
   toggle. Hide the marker for the vehicle currently occupied by the player.
 

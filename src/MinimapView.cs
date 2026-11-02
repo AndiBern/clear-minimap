@@ -77,15 +77,9 @@ internal sealed class MinimapView
         Vector span = new(coverage_metres * MathF.Sqrt(axis_x.X * axis_x.X + axis_z.X * axis_z.X),
             coverage_metres * MathF.Sqrt(axis_x.Y * axis_x.Y + axis_z.Y * axis_z.Y));
         if (!float.IsFinite(span.LengthSquared()) || span.X < 0.00001f || span.Y < 0.00001f) return;
-        if (MapProjection.clip(center, span, out Vector minimum, out Vector maximum))
-        {
-            Vector origin = center - span / 2;
-            Rect target = new(panel.x + (minimum.X - origin.X) / span.X * panel.width,
-                panel.y + (origin.Y + span.Y - maximum.Y) / span.Y * panel.height,
-                (maximum.X - minimum.X) / span.X * panel.width, (maximum.Y - minimum.Y) / span.Y * panel.height);
-            Rect texture_uv = new(minimum.X, minimum.Y, maximum.X - minimum.X, maximum.Y - minimum.Y);
-            overlay.texture(target, sprite_textures.get(sprite, true), texture_uv, Color.white);
-        }
+        Vector origin = center - span / 2;
+        Rect texture_uv = new(origin.X, origin.Y, span.X, span.Y);
+        overlay.texture(panel, sprite_textures.get(sprite, true), texture_uv, Color.white);
         int label_count = 0;
         int placed_count = 0;
         for (int i = 0; i < MapMarkers.count; i++)
@@ -105,7 +99,7 @@ internal sealed class MinimapView
             bool crowded = false;
             for (int j = 0; j < placed_count; j++)
                 if ((placed_markers[j] - point).sqrMagnitude < 100f) crowded = true;
-            if (crowded && !important) continue;
+            if (crowded && !important && marker.kind != MarkerKind.NPC) continue;
 
             Color color = marker.kind switch
             {
@@ -131,11 +125,15 @@ internal sealed class MinimapView
             overlay.box(label, new Color(0.03f, 0.045f, 0.06f, 0.8f));
             overlay.label(label, text, color, font_size: 10);
         }
-        for (int i = 0; i < placed_count; i++)
+        for (int pass = 0; pass < 2; pass++)
         {
-            draw_marker(placed_markers[i], visible_markers[i], marker_colors[i]);
-            visible_markers[i] = default;
+            for (int i = 0; i < placed_count; i++)
+            {
+                if ((visible_markers[i].kind == MarkerKind.NPC) != (pass == 0)) continue;
+                draw_marker(placed_markers[i], visible_markers[i], marker_colors[i]);
+            }
         }
+        Array.Clear(visible_markers, 0, placed_count);
         Vector3 forward = PlayerCamera.InstanceExists && PlayerCamera.Instance.Camera != null
             ? PlayerCamera.Instance.Camera.transform.forward : player.transform.forward;
         forward.y = 0;
