@@ -14,7 +14,7 @@ pause menu is open, except for its settings preview.
 
 ## Install
 
-**IL2CPP only.** Requires **MelonLoader 0.7.3** and **ModSettings 0.3.1**.
+**IL2CPP only.** Requires **MelonLoader 0.7.3** and **ModSettings 0.3.0**.
 
 Disable **SimpleMinimap** or other minimap mods. Install through **r2modman** or
 **Thunderstore Mod Manager**, which installs ModSettings automatically. For
@@ -31,8 +31,7 @@ playing. Change **Zoom in shortcut** and **Zoom out shortcut** in the same menu.
 Click the control and press a key, use **Backspace** to disable it, or
 **Escape** to cancel. Placement defaults to 1% of the available travel from the
 selected corner. Use 0% for that edge, 50% to center, or 100% for the opposite
-edge. Click a slider value to enter an exact number. Changes apply live and are
-saved in `UserData/MelonPreferences.cfg`.
+edge. Changes apply live and are saved in `UserData/MelonPreferences.cfg`.
 
 Toggle teammates, properties, deals, objectives, places, NPCs, recruited
 dealers, and owned vehicles independently. Dealers use a gold outline, and

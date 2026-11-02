@@ -5,6 +5,6 @@
   "description": "A square minimap with zoom, corner placement, optional phone-map NPCs, teammates, properties, deals and objectives. IL2CPP.",
   "dependencies": [
     "LavaGang-MelonLoader-0.7.3",
-    "holyfurries-ModSettings-0.3.1"
+    "holyfurries-ModSettings-0.3.0"
   ]
 }

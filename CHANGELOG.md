@@ -8,8 +8,7 @@
 - Show recruited dealers with gold-outlined portraits and a separate visibility
   toggle.
 
-- Use 0–100% placement offsets with one-percent steps and precise number entry
-  through ModSettings 0.3.1.
+- Use 0–100% placement offsets with one-percent steps.
 
 - Refresh NPC markers on the next update when their visibility is toggled.
 
@@ -28,7 +27,7 @@
 - Add corner selection and horizontal and vertical placement offsets, keeping
   the frame and clock inside the viewport when space permits.
 
-- Require ModSettings 0.3.1.
+- Require ModSettings 0.3.0.
 
 - Update the package icon and release tooling.
 
